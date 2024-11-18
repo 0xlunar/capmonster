@@ -1,6 +1,14 @@
-use num_traits::Float;
-use num_traits::real::Real;
 use serde::Serialize;
+use std::ops::Deref;
+
+#[derive(Serialize)]
+pub struct CreateTask<T: Serialize> {
+    #[serde(rename = "clientKey")]
+    client_key: String,
+    task: T,
+    #[serde(rename = "callbackUrl", skip_serializing_if = "Option::is_none")]
+    callback_url: Option<String>
+}
 
 #[derive(Default)]
 pub(crate) enum RecaptchaV2ProxyType {
@@ -46,34 +54,62 @@ pub struct TaskProxy {
     pub proxy_address: String,
     #[serde(rename = "proxyPort")]
     pub proxy_port: u16,
-    #[serde(rename = "proxyLogin")]
+    #[serde(rename = "proxyLogin", skip_serializing_if = "Option::is_none")]
     pub proxy_login: Option<String>,
-    #[serde(rename = "proxyPassword")]
+    #[serde(rename = "proxyPassword", skip_serializing_if = "Option::is_none")]
     pub proxy_password: Option<String>,
 }
 
 #[derive(Serialize)]
 pub struct RecaptchaV3Task {
     #[serde(rename = "type")]
-    _type: String,
+    pub(crate) _type: String,
     #[serde(rename = "websiteURL")]
-    website_url: String,
+    pub(crate) website_url: String,
     #[serde(rename = "websiteKey")]
-    website_key: String,
-    #[serde(rename = "minScore")]
-    min_score: Option<f64>,
-    #[serde(rename = "pageAction")]
-    page_action: Option<String>
+    pub(crate) website_key: String,
+    #[serde(rename = "minScore", skip_serializing_if = "Option::is_none")]
+    pub(crate) min_score: Option<f64>,
+    #[serde(rename = "pageAction", skip_serializing_if = "Option::is_none")]
+    pub(crate) page_action: Option<String>,
 }
 
+#[derive(Serialize)]
+pub struct HCaptchaTask {
+    #[serde(rename = "type")]
+    pub(crate) _type: String,
+    #[serde(rename = "websiteURL")]
+    pub(crate) website_url: String,
+    #[serde(rename = "websiteKey")]
+    pub(crate) website_key: String,
+    #[serde(rename = "isInvisible", skip_serializing_if = "Option::is_none")]
+    pub(crate) is_invisible: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub(crate) data: Option<String>,
+    #[serde(rename = "userAgent", skip_serializing_if = "Option::is_none")]
+    pub(crate) user_agent: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub(crate) cookies: Option<String>,
+    #[serde(rename = "fallbackToActualUA", skip_serializing_if = "Option::is_none")]
+    pub(crate) fallback_to_actual_ua: Option<bool>,
+    #[serde(flatten)]
+    pub(crate) proxy: TaskProxy,
+}
 
-
-pub(crate) struct BetweenZeroAndOne {
+pub(crate) struct BetweenPointOneAndPointNine {
     num: f64,
 }
-impl BetweenZeroAndOne {
+impl BetweenPointOneAndPointNine {
     pub(crate) fn new(num: f64) -> Self {
-        let num = num.clamp(0.0, 1.0);
+        let num = num.clamp(0.1, 0.9);
         Self { num }
+    }
+}
+
+impl Deref for BetweenPointOneAndPointNine {
+    type Target = f64;
+
+    fn deref(&self) -> &Self::Target {
+        &self.num
     }
 }

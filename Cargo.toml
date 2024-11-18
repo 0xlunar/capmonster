@@ -14,8 +14,8 @@ rquest = ["dep:rquest"]
 [dependencies]
 anyhow = "1.0.93"
 num-traits = "0.2.19"
-reqwest = { version = "0.12.9", optional = true }
-rquest = { version = "0.27.6", optional = true }
+reqwest = { version = "0.12.9", features = ["json"], optional = true }
+rquest = { version = "0.27.6", features = ["json"], optional = true }
 serde = { version = "1.0.215", features = ["derive"] }
 serde_json = "1.0.133"
 thiserror = "2.0.3"
