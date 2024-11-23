@@ -3,6 +3,7 @@ use anyhow::format_err;
 use serde::Serialize;
 
 pub trait Builder<T: Serialize> {
+    fn get_type(&self) -> TaskCaptchaType;
     fn build(self) -> anyhow::Result<T>;
 }
 
@@ -179,6 +180,10 @@ impl RecaptchaV2Builder {
 }
 
 impl Builder<RecaptchaV2Task> for RecaptchaV2Builder {
+    fn get_type(&self) -> TaskCaptchaType {
+        TaskCaptchaType::Recaptcha
+    }
+
     fn build(self) -> anyhow::Result<RecaptchaV2Task> {
         let mut _type = "RecaptchaV2".to_string();
         match self.enterprise {

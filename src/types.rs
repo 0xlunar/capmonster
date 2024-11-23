@@ -1,13 +1,144 @@
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::ops::Deref;
+use serde_json::Value;
+
+#[derive(Serialize, Deserialize, Debug)]
+pub enum CapMonsterError {
+    #[serde(deserialize = "ERROR_KEY_DOES_NOT_EXIST")]
+    KeyDoesNotExist,
+    #[serde(deserialize = "ERROR_ZERO_BALANCE")]
+    ZeroBalance,
+    #[serde(deserialize = "ERROR_TOO_BIG_CAPTCHA_FILESIZE")]
+    TooBigCaptchaFileSize,
+    #[serde(deserialize = "ERROR_ZERO_CAPTCHA_FILESIZE")]
+    ZeroCaptchaFileSize,
+    #[serde(deserialize = "ERROR_NO_SUCH_CAPCHA_ID")]
+    NoSuchCaptchaID,
+    #[serde(deserialize = "WRONG_CAPTCHA_ID")]
+    WrongCaptchaID,
+    #[serde(deserialize = "ERROR_CAPTCHA_UNSOLVABLE")]
+    CaptchaUnsolvable,
+    #[serde(deserialize = "CAPTCHA_NOT_READY")]
+    CaptchaNotReady,
+    #[serde(deserialize = "ERROR_IP_NOT_ALLOWED")]
+    IPNotAllowed,
+    #[serde(deserialize = "ERROR_IP_BANNED")]
+    IPBanned,
+    #[serde(deserialize = "ERROR_NO_SUCH_METHOD")]
+    NoSuchMethod,
+    #[serde(deserialize = "ERROR_TOO_MUCH_REQUESTS")]
+    TooMuchRequests,
+    #[serde(deserialize = "ERROR_DOMAIN_NOT_ALLOWED")]
+    DomainNotAllowed,
+    #[serde(deserialize = "ERROR_TOKEN_EXPIRED")]
+    TokenExpired,
+    #[serde(deserialize = "ERROR_NO_SLOT_AVAILABLE")]
+    NoSlotAvailable,
+    #[serde(deserialize = "ERROR_RECAPTCHA_INVALID_SITEKEY")]
+    RecaptchaInvalidSiteKey,
+    #[serde(deserialize = "ERROR_RECAPTCHA_INVALID_DOMAIN")]
+    RecaptchaInvalidDomain,
+    #[serde(deserialize = "ERROR_RECAPTCHA_TIMEOUT")]
+    RecaptchaTimeout,
+    #[serde(deserialize = "ERROR_IP_BLOCKED")]
+    IpBlocked,
+    #[serde(deserialize = "ERROR_PROXY_CONNECT_REFUSED")]
+    ProxyConnectRefused,
+    #[serde(deserialize = "ERROR_PROXY_BANNED")]
+    ProxyBanned,
+    #[serde(deserialize = "ERROR_TASK_NOT_SUPPORTED")]
+    TaskNotSupported,
+    #[serde(deserialize = "ERROR_TASK_ABSENT")]
+    TaskAbsent,
+    #[serde(deserialize = "ERROR_WRONG_USERAGENT")]
+    WrongUserAgent
+}
 
 #[derive(Serialize)]
-pub struct CreateTask<T: Serialize> {
+pub(crate) struct CreateTask<T: Serialize> {
     #[serde(rename = "clientKey")]
-    client_key: String,
-    task: T,
+    pub(crate) client_key: String,
+    pub(crate) task: T,
     #[serde(rename = "callbackUrl", skip_serializing_if = "Option::is_none")]
-    callback_url: Option<String>
+    pub(crate) callback_url: Option<String>
+}
+
+#[derive(Deserialize, Debug)]
+#[serde(untagged)]
+pub(crate) enum CreateTaskResponse {
+    Success(CreateTaskSuccess),
+    Error(CreateTaskError)
+}
+
+#[derive(Deserialize, Debug)]
+pub(crate) struct CreateTaskSuccess {
+    pub(crate) error_id: u8,
+    pub(crate) task_id: u64,
+}
+
+#[derive(Deserialize, Debug)]
+pub(crate) struct CreateTaskError {
+    pub(crate) error_id: u8,
+    pub(crate) error_code: CapMonsterError,
+    pub(crate) error_description: Option<String>,
+    pub(crate) task_id: u64,
+}
+
+pub struct TaskId(u64);
+
+#[derive(Debug)]
+pub(crate) enum TaskCaptchaType {
+    Recaptcha,
+    GeeTest,
+    Turnstile,
+    ComplexImageRecognition,
+    ComplexImageRecaptcha,
+    ImageToText,
+    DataDome,
+    TenDI,
+    Amazon
+}
+
+#[derive(Deserialize, Debug)]
+pub(crate) enum GetTaskResultResponse {
+    Success(GetTaskResultSuccess),
+    Processing(GetTaskResultProcessing),
+    Error(GetTaskResultError)
+}
+
+#[derive(Deserialize, Debug)]
+pub(crate) enum GetTaskResultStatus {
+    #[serde(rename = "processing")]
+    Processing,
+    #[serde(rename = "ready")]
+    Ready
+}
+
+#[derive(Deserialize, Debug)]
+pub(crate) struct GetTaskResultSuccess {
+    pub(crate) error_id: u8,
+    pub(crate) status: GetTaskResultStatus::Ready,
+    pub(crate) solution: Value
+}
+
+#[derive(Deserialize, Debug)]
+pub(crate) struct GetTaskResultError {
+    pub(crate) error_id: u8,
+    pub(crate) error_code: CapMonsterError,
+    pub(crate) error_description: Option<String>,
+    pub(crate) status: GetTaskResultStatus,
+}
+
+#[derive(Deserialize, Debug)]
+pub(crate) struct GetTaskResultProcessing {
+    pub(crate) error_id: u8,
+    pub(crate) status: GetTaskResultStatus::Processing,
+}
+
+#[derive(Serialize, Debug)]
+pub(crate) struct GetTaskResultPayload<'a> {
+    pub(crate) client_key: &'a str,
+    pub(crate) task_id: u64,
 }
 
 #[derive(Default)]
@@ -111,5 +242,12 @@ impl Deref for BetweenPointOneAndPointNine {
 
     fn deref(&self) -> &Self::Target {
         &self.num
+    }
+}
+
+impl Deref for TaskId {
+    type Target = u64;
+    fn deref(&self) -> &Self::Target {
+        &self.0
     }
 }
