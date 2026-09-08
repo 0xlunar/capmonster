@@ -1,8 +1,8 @@
-use std::collections::HashMap;
 use crate::{CapMonster, CapMonsterError, Task};
 use serde::{Deserialize, Serialize};
-use std::time::Duration;
 use serde_json::Value;
+use std::collections::HashMap;
+use std::time::Duration;
 
 macro_rules! impl_solver {
     ($solver:ty, $input:ty, $output:ty) => {
@@ -19,7 +19,11 @@ macro_rules! impl_solver {
             pub async fn get_task_result(&self) -> Result<Option<$output>, CapMonsterError> {
                 self.get_task_result_internal().await
             }
-            pub async fn wait_for_result(&self, poll_rate: Option<Duration>, max_attempts: Option<usize>) -> Result<$output, CapMonsterError> {
+            pub async fn wait_for_result(
+                &self,
+                poll_rate: Option<Duration>,
+                max_attempts: Option<usize>,
+            ) -> Result<$output, CapMonsterError> {
                 self.wait_for_result_internal(poll_rate, max_attempts).await
             }
         }
@@ -191,7 +195,11 @@ pub struct RecaptchaV2EnterpriseSolution {
     pub g_recaptcha_response: String,
 }
 
-impl_solver!(RecaptchaV2Enterprise, RecaptchaV2EnterpriseTask<'_>, RecaptchaV2EnterpriseSolution);
+impl_solver!(
+    RecaptchaV2Enterprise,
+    RecaptchaV2EnterpriseTask<'_>,
+    RecaptchaV2EnterpriseSolution
+);
 
 //////////////////////////////////////////////
 
@@ -216,7 +224,11 @@ pub struct RecaptchaV3EnterpriseSolution {
     pub g_recaptcha_response: String,
 }
 
-impl_solver!(RecaptchaV3Enterprise, RecaptchaV3EnterpriseTask<'_>, RecaptchaV3EnterpriseSolution);
+impl_solver!(
+    RecaptchaV3Enterprise,
+    RecaptchaV3EnterpriseTask<'_>,
+    RecaptchaV3EnterpriseSolution
+);
 
 //////////////////////////////////////////////
 
@@ -287,7 +299,11 @@ pub struct CloudflareChallengeTokenSolution {
     pub token: String,
 }
 
-impl_solver!(CloudflareChallengeToken, CloudflareChallengeTokenTask<'_>, CloudflareChallengeTokenSolution);
+impl_solver!(
+    CloudflareChallengeToken,
+    CloudflareChallengeTokenTask<'_>,
+    CloudflareChallengeTokenSolution
+);
 
 //////////////////////////////////////////////
 
@@ -317,7 +333,11 @@ pub struct CloudflareChallengeCookieSolution {
     pub cf_clearance: String,
 }
 
-impl_solver!(CloudflareChallengeCookie, CloudflareChallengeCookieTask<'_>, CloudflareChallengeCookieSolution);
+impl_solver!(
+    CloudflareChallengeCookie,
+    CloudflareChallengeCookieTask<'_>,
+    CloudflareChallengeCookieSolution
+);
 
 //////////////////////////////////////////////
 
@@ -347,7 +367,11 @@ pub struct CloudflareWaitingRoomSolution {
     pub cf_clearance: String,
 }
 
-impl_solver!(CloudflareWaitingRoom, CloudflareWaitingRoomTask<'_>, CloudflareWaitingRoomSolution);
+impl_solver!(
+    CloudflareWaitingRoom,
+    CloudflareWaitingRoomTask<'_>,
+    CloudflareWaitingRoomSolution
+);
 
 //////////////////////////////////////////////
 

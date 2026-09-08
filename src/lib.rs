@@ -1,14 +1,14 @@
-pub mod solver;
 pub mod error;
+pub mod solver;
 
+use crate::error::{CapMonsterError, ErrorCode, TaskError};
+use log::debug;
+use serde::de::DeserializeOwned;
+use serde::{Deserialize, Serialize};
 use std::marker::PhantomData;
 use std::sync::Arc;
 use std::time::Duration;
 use wreq::Client;
-use log::debug;
-use serde::de::DeserializeOwned;
-use serde::{Deserialize, Serialize};
-use crate::error::{CapMonsterError, ErrorCode, TaskError};
 
 const BASE_URL: &'static str = "https://api.capmonster.cloud";
 const POLL_RATE: Duration = Duration::from_secs(2);
@@ -43,10 +43,7 @@ impl<T> CapMonster<T> {
         self
     }
 
-    async fn create_task_internal(
-        &self,
-        task: impl Serialize,
-    ) -> Result<Task<T>, CapMonsterError> {
+    async fn create_task_internal(&self, task: impl Serialize) -> Result<Task<T>, CapMonsterError> {
         let endpoint = format!("{}{}", BASE_URL, "/createTask");
 
         let data = serde_json::json!({
@@ -168,17 +165,23 @@ impl<T> Task<T> {
 }
 
 mod example {
-    use wreq::Client;
     use crate::CapMonster;
     use crate::solver::{RecaptchaV2, RecaptchaV2Task};
+    use wreq::Client;
 
     pub async fn recaptcha_v2() {
         let client = Client::new();
         let solver = CapMonster::new(client, "abcdef", RecaptchaV2);
 
         let task_data = RecaptchaV2Task::new("", "");
-        let task = solver.create_task(task_data).await.expect("Failed to create task");
-        let solution = task.wait_for_result(None, None).await.expect("Failed to get solution");
+        let task = solver
+            .create_task(task_data)
+            .await
+            .expect("Failed to create task");
+        let solution = task
+            .wait_for_result(None, None)
+            .await
+            .expect("Failed to get solution");
         println!("Solution: {}", solution.g_recaptcha_response);
     }
 }

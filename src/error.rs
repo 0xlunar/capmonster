@@ -1,6 +1,6 @@
-use std::fmt::Formatter;
-use serde::{Deserialize, Deserializer};
 use serde::de::{Error, Visitor};
+use serde::{Deserialize, Deserializer};
+use std::fmt::Formatter;
 
 #[derive(Debug)]
 pub enum CapMonsterError {
