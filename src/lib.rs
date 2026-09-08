@@ -1,127 +1,184 @@
-pub mod builders;
-mod handlers;
-mod types;
+pub mod solver;
+pub mod error;
 
-use anyhow::format_err;
-use crate::builders::Builder;
-#[cfg(feature = "reqwest")]
-use reqwest;
-#[cfg(all(feature = "rquest", not(feature = "reqwest")))]
-use rquest as reqwest;
-use serde::Serialize;
-use crate::types::{CapMonsterError, CreateTask, CreateTaskResponse, GetTaskResultPayload, GetTaskResultResponse, TaskCaptchaType, TaskId};
+use std::marker::PhantomData;
+use std::sync::Arc;
+use std::time::Duration;
+use wreq::Client;
+use log::debug;
+use serde::de::DeserializeOwned;
+use serde::{Deserialize, Serialize};
+use crate::error::{CapMonsterError, ErrorCode, TaskError};
 
-static BASE_URL: &'static str = "https://api.capmonster.cloud";
+const BASE_URL: &'static str = "https://api.capmonster.cloud";
+const POLL_RATE: Duration = Duration::from_secs(2);
+const MAX_ATTEMPTS: usize = 20;
 
-pub struct CapMonster {
-    api_key: String,
-    callback_url: Option<String>,
-    client: reqwest::Client,
+pub struct CapMonster<T> {
+    client: Client,
+    client_key: Arc<str>,
+    callback_url: Option<Arc<str>>,
+    _solver: PhantomData<T>,
 }
 
-impl CapMonster {
-    pub fn new(api_key: &str, callback_url: Option<String>) -> Self {
-        let client = reqwest::Client::builder().build().unwrap();
+pub struct Task<T> {
+    id: u64,
+    client: Client,
+    client_key: Arc<str>,
+    _type: PhantomData<T>,
+}
 
+impl<T> CapMonster<T> {
+    pub fn new(client: Client, client_key: impl Into<Arc<str>>, _solver: T) -> Self {
         Self {
-            api_key: api_key.to_string(),
-            callback_url,
             client,
+            client_key: client_key.into(),
+            callback_url: None,
+            _solver: PhantomData::default(),
         }
     }
 
-    pub async fn create_task<S: Builder<T>, T: Serialize>(&self, task: S) -> anyhow::Result<CapMonsterTask> {
-        let task_type = task.get_type();
-        let task = task.build()?;
-        let create_task = CreateTask {
-            client_key: self.api_key.clone(),
-            task,
-            callback_url,
-        };
+    pub fn set_callback_url(&mut self, callback_url: impl Into<Arc<str>>) -> &mut Self {
+        self.callback_url = Some(callback_url.into());
+        self
+    }
 
-        let resp = self
+    async fn create_task_internal(
+        &self,
+        task: impl Serialize,
+    ) -> Result<Task<T>, CapMonsterError> {
+        let endpoint = format!("{}{}", BASE_URL, "/createTask");
+
+        let data = serde_json::json!({
+            "clientKey": &*self.client_key,
+            "task": task,
+            "callbackUrl": self.callback_url.as_ref().map(|url| &**url)
+        });
+
+        let response = self
             .client
-            .post("https://api.capmonster.cloud/createTask")
-            .json(&create_task)
+            .post(endpoint)
+            .json(&data)
             .send()
-            .await?;
+            .await
+            .map_err(|err| CapMonsterError::Custom(err.to_string()))?;
 
-        let data = resp.bytes().await?;
-        let data: CreateTaskResponse = serde_json::from_slice(&data)?;
+        if !response.status().is_success() {
+            return Err(CapMonsterError::Custom(format!(
+                "Got status {}",
+                response.status()
+            )));
+        }
 
-        match data {
-            CreateTaskResponse::Success(task) => {
-                Ok(CapMonsterTask {
-                    client: &self.client,
-                    api_key: &self.api_key,
-                    _type: task_type,
-                    id: TaskId(task.task_id),
-                })
-            }
-            CreateTaskResponse::Error(err) => {
-                match err.error_description {
-                    Some(description) => Err(format_err!("{} - {}", err.error_code, description)),
-                    None => Err(format_err!("{}", err.error_code))
-                }
-            }
+        #[derive(Deserialize)]
+        struct CreateTaskResponse {
+            error_id: i16,
+            error_code: Option<ErrorCode>,
+            error_description: Option<String>,
+            task_id: u64,
+        }
+
+        let body = response
+            .json::<CreateTaskResponse>()
+            .await
+            .map_err(|err| CapMonsterError::Custom(err.to_string()))?;
+        if body.error_id != 0 {
+            Err(CapMonsterError::TaskError(TaskError {
+                error_id: body.error_id,
+                error_description: body.error_description.unwrap_or_else(|| "".to_string()),
+                error_code: body
+                    .error_code
+                    .unwrap_or_else(|| ErrorCode::ServiceNotAvailable),
+            }))
+        } else {
+            Ok(Task {
+                id: body.task_id,
+                client: self.client.clone(),
+                client_key: self.client_key.clone(),
+                _type: PhantomData::default(),
+            })
         }
     }
 }
 
-pub struct CapMonsterTask<'a> {
-    client: &'a reqwest::Client,
-    api_key: &'a str,
-    _type: TaskCaptchaType,
-    id: TaskId
-}
+impl<T> Task<T> {
+    async fn get_task_result_internal<Output: DeserializeOwned>(
+        &self,
+    ) -> Result<Option<Output>, CapMonsterError> {
+        let endpoint = format!("{}{}", BASE_URL, "/getTaskResult");
 
-impl CapMonsterTask<'_> {
-    pub async fn get_task_result(&self) -> anyhow::Result<GetTaskResultResponse> {
-        let payload = GetTaskResultPayload {
-            client_key: &self.api_key,
-            task_id: *self.id,
-        };
+        let data = serde_json::json!({
+            "clientKey": &*self.client_key,
+            "taskId": self.id,
+        });
 
-        let resp = self.client.post("https://api.capmonster.cloud/getTaskResult").json(&payload).send().await?;
-        let data = resp.bytes().await?;
+        let response = self
+            .client
+            .post(endpoint)
+            .json(&data)
+            .send()
+            .await
+            .map_err(|err| CapMonsterError::Custom(err.to_string()))?;
 
-        Ok(serde_json::from_slice(&data)?)
+        #[derive(Deserialize)]
+        struct GetTaskResultOutput<O> {
+            error_code: Option<ErrorCode>,
+            error_description: Option<String>,
+            error_id: i16,
+            status: String,
+            solution: Option<O>,
+        }
+
+        let body = response
+            .json::<GetTaskResultOutput<Output>>()
+            .await
+            .map_err(|err| CapMonsterError::Custom(err.to_string()))?;
+        if body.error_id != 0 {
+            Err(CapMonsterError::TaskError(TaskError {
+                error_id: body.error_id,
+                error_description: body.error_description.unwrap_or_else(|| "".to_string()),
+                error_code: body
+                    .error_code
+                    .unwrap_or_else(|| ErrorCode::ServiceNotAvailable),
+            }))
+        } else if body.status == "ready" {
+            Ok(body.solution)
+        } else {
+            Ok(None)
+        }
     }
-
-    pub async fn poll_task_result(self) -> anyhow::Result<(), CapMonsterError> {
-        let task = self;
-
-        let mut attempts = 0;
-        // https://docs.capmonster.cloud/docs/api/methods/get-task-result
-        // Limit: 120 requests per task. If the limit is exceeded, the user's account may be temporarily locked.
-        let max_attempts = 120;
-        let mut output = None;
-        while attempts < max_attempts {
-            attempts += 1;
-            match task.get_task_result().await? {
-                GetTaskResultResponse::Success(success) => {}
-                GetTaskResultResponse::Processing(processing) => {
-
-                }
-                GetTaskResultResponse::Error(error) => {
-                    return Err(error.error_code)
-                }
+    async fn wait_for_result_internal<Output: DeserializeOwned>(
+        &self,
+        poll_rate: Option<Duration>,
+        max_attempts: Option<usize>,
+    ) -> Result<Output, CapMonsterError> {
+        let mut poll = tokio::time::interval(poll_rate.unwrap_or_else(|| POLL_RATE));
+        let mut count = 0;
+        while count < max_attempts.unwrap_or_else(|| MAX_ATTEMPTS) {
+            count += 1;
+            debug!("Solve attempt [{count}] ID: [{}]", self.id);
+            poll.tick().await;
+            if let Some(solution) = self.get_task_result_internal().await? {
+                return Ok(solution);
             }
         }
 
-        Ok(())
+        Err(CapMonsterError::Custom("Exceeded max attempts".to_string()))
     }
 }
 
-mod test {
-    use crate::builders::RecaptchaV2Builder;
+mod example {
+    use wreq::Client;
     use crate::CapMonster;
+    use crate::solver::{RecaptchaV2, RecaptchaV2Task};
 
-    async fn main() {
-        let mon = CapMonster::new("", None);
+    pub async fn recaptcha_v2() {
+        let client = Client::new();
+        let solver = CapMonster::new(client, "abcdef", RecaptchaV2);
 
-        let builder = RecaptchaV2Builder::new().build().unwrap();
-
-        let task = mon.create_task(builder).await.unwrap();
+        let task_data = RecaptchaV2Task::new("", "");
+        let task = solver.create_task(task_data).await.expect("Failed to create task");
+        let solution = task.wait_for_result(None, None).await.expect("Failed to get solution");
+        println!("Solution: {}", solution.g_recaptcha_response);
     }
 }
