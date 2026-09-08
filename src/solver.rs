@@ -167,6 +167,15 @@ pub struct RecaptchaV2Enterprise;
 pub struct RecaptchaV2EnterpriseTaskPayload<'a> {
     s: &'a str,
 }
+
+impl<'a> RecaptchaV2EnterpriseTaskPayload<'a> {
+     pub fn new(data: &'a str) -> Self {
+         Self {
+             s: data,
+         }
+     }
+}
+
 impl_task!(
     'a,
     RecaptchaV2EnterpriseTask,
@@ -437,3 +446,158 @@ pub struct DataDomeSolutionCookie {
 }
 
 impl_solver!(DataDome, DataDomeTask<'_>, DataDomeSolution);
+
+//////////////////////////////////////////////
+
+pub struct Basilisk;
+impl_task!(
+    'a,
+    BasiliskTask,
+    "CustomTask",
+    {
+        class: "Basilisk"
+    },
+    {
+        website_url: &'a str,
+        website_key: &'a str,
+    },
+    {
+        user_agent: &'a str,
+        proxy_type: &'a str,
+        proxy_address: &'a str,
+        proxy_port: &'a str,
+        proxy_login: &'a str,
+        proxy_password: &'a str,
+    }
+);
+#[derive(Deserialize)]
+pub struct BasiliskSolution {
+    pub data: BasiliskSolutionData,
+    pub headers: BasiliskSolutionHeaders,
+}
+#[derive(Deserialize)]
+pub struct BasiliskSolutionData {
+    captcha_response: String,
+}
+#[derive(Deserialize)]
+pub struct BasiliskSolutionHeaders {
+    #[serde(rename = "User-Agent")]
+    user_agent: String,
+}
+
+impl_solver!(
+    Basilisk,
+    BasiliskTask<'_>,
+    BasiliskSolution
+);
+
+
+//////////////////////////////////////////////
+
+pub struct TenDI;
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TenDITaskMetadata<'a> {
+    captcha_url: Option<&'a str>,
+}
+
+impl<'a> TenDITaskMetadata<'a> {
+    pub fn new() -> Self {
+        Self {
+            captcha_url: None,
+        }
+    }
+
+    set_key_option!(captcha_url, &'a str);
+}
+
+impl_task!(
+    'a,
+    TenDITask,
+    "CustomTask",
+    {
+        class: "TenDI"
+    },
+    {
+        website_url: &'a str,
+        website_key: &'a str,
+    },
+    {
+        metadata: TenDITaskMetadata<'a>,
+        user_agent: &'a str,
+        proxy_type: &'a str,
+        proxy_address: &'a str,
+        proxy_port: &'a str,
+        proxy_login: &'a str,
+        proxy_password: &'a str,
+    }
+);
+#[derive(Deserialize)]
+pub struct TenDISolution {
+    pub data: BasiliskSolutionData,
+    pub headers: BasiliskSolutionHeaders,
+}
+#[derive(Deserialize)]
+pub struct TenDISolutionData {
+    randstr: String,
+    ticket: String,
+}
+#[derive(Deserialize)]
+pub struct TenDISolutionHeaders {
+    #[serde(rename = "User-Agent")]
+    user_agent: String,
+}
+
+impl_solver!(
+    TenDI,
+    TenDITask<'_>,
+    TenDISolution
+);
+
+//////////////////////////////////////////////
+//
+// pub struct AmazonAWSWAF;
+// impl_task!(
+//     'a,
+//     AmazonAWSWAFTask,
+//     "AmazonTask",
+//     {
+//         class: "TenDI"
+//     },
+//     {
+//         website_url: &'a str,
+//         website_key: &'a str,
+//     },
+//     {
+//         metadata: TenDITaskMetadata<'a>,
+//         user_agent: &'a str,
+//         proxy_type: &'a str,
+//         proxy_address: &'a str,
+//         proxy_port: &'a str,
+//         proxy_login: &'a str,
+//         proxy_password: &'a str,
+//     }
+// );
+// #[derive(Deserialize)]
+// pub struct AmazonAWSWAFaSolution {
+//     pub data: BasiliskSolutionData,
+//     pub headers: BasiliskSolutionHeaders,
+// }
+// #[derive(Deserialize)]
+// pub struct TenDISolutionData {
+//     randstr: String,
+//     ticket: String,
+// }
+// #[derive(Deserialize)]
+// pub struct TenDISolutionHeaders {
+//     #[serde(rename = "User-Agent")]
+//     user_agent: String,
+// }
+//
+// impl_solver!(
+//     TenDI,
+//     TenDITask<'_>,
+//     TenDISolution
+// );
+
+//////////////////////////////////////////////
