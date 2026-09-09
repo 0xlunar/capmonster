@@ -477,12 +477,12 @@ pub struct BasiliskSolution {
 }
 #[derive(Deserialize)]
 pub struct BasiliskSolutionData {
-    captcha_response: String,
+    pub captcha_response: String,
 }
 #[derive(Deserialize)]
 pub struct BasiliskSolutionHeaders {
     #[serde(rename = "User-Agent")]
-    user_agent: String,
+    pub user_agent: String,
 }
 
 impl_solver!(
@@ -539,13 +539,13 @@ pub struct TenDISolution {
 }
 #[derive(Deserialize)]
 pub struct TenDISolutionData {
-    randstr: String,
-    ticket: String,
+    pub randstr: String,
+    pub ticket: String,
 }
 #[derive(Deserialize)]
 pub struct TenDISolutionHeaders {
     #[serde(rename = "User-Agent")]
-    user_agent: String,
+    pub user_agent: String,
 }
 
 impl_solver!(
@@ -555,49 +555,207 @@ impl_solver!(
 );
 
 //////////////////////////////////////////////
-//
-// pub struct AmazonAWSWAF;
-// impl_task!(
-//     'a,
-//     AmazonAWSWAFTask,
-//     "AmazonTask",
-//     {
-//         class: "TenDI"
-//     },
-//     {
-//         website_url: &'a str,
-//         website_key: &'a str,
-//     },
-//     {
-//         metadata: TenDITaskMetadata<'a>,
-//         user_agent: &'a str,
-//         proxy_type: &'a str,
-//         proxy_address: &'a str,
-//         proxy_port: &'a str,
-//         proxy_login: &'a str,
-//         proxy_password: &'a str,
-//     }
-// );
-// #[derive(Deserialize)]
-// pub struct AmazonAWSWAFaSolution {
-//     pub data: BasiliskSolutionData,
-//     pub headers: BasiliskSolutionHeaders,
-// }
-// #[derive(Deserialize)]
-// pub struct TenDISolutionData {
-//     randstr: String,
-//     ticket: String,
-// }
-// #[derive(Deserialize)]
-// pub struct TenDISolutionHeaders {
-//     #[serde(rename = "User-Agent")]
-//     user_agent: String,
-// }
-//
-// impl_solver!(
-//     TenDI,
-//     TenDITask<'_>,
-//     TenDISolution
-// );
+
+pub struct AmazonAWSWAF;
+#[derive(Serialize)]
+#[serde(untagged, rename_all = "camelCase")]
+pub enum AmazonAWSWAFTaskData<'a> {
+    Captcha {
+        website_key: &'a str,
+        user_agent: &'a str,
+        captcha_script: &'a str,
+    },
+    CaptchaAndChallenge {
+        website_key: &'a str,
+        challenge_script: &'a str,
+        captcha_script: &'a str,
+        context: &'a str,
+        iv: &'a str,
+    },
+    Challenge {
+        challenge_script: &'a str,
+        context: &'a str,
+        iv: &'a str,
+    },
+}
+
+impl<'a> AmazonAWSWAFTaskData<'a> {
+    pub fn captcha(website_key: &'a str, captcha_script: &'a str, user_agent: &'a str) -> Self {
+        Self::Captcha {
+            website_key,
+            user_agent,
+            captcha_script,
+        }
+    }
+
+    pub fn captcha_and_challenge(website_key: &'a str, challenge_script: &'a str, captcha_script: &'a str, context: &'a str, iv: &'a str) -> Self {
+        Self::CaptchaAndChallenge {
+            website_key,
+            challenge_script,
+            captcha_script,
+            context,
+            iv,
+        }
+    }
+
+    pub fn challenge(challenge_script: &'a str) -> Self {
+        Self::Challenge {
+            challenge_script,
+            context: "",
+            iv: "",
+        }
+    }
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AmazonAWSWAFTask<'a> {
+    #[serde(rename = "type")]
+    _type: &'static str,
+    cookie_solution: bool,
+    website_url: &'a str,
+    #[serde(flatten)]
+    task_data: AmazonAWSWAFTaskData<'a>,
+    proxy_type: Option<&'a str>,
+    proxy_address: Option<&'a str>,
+    proxy_port: Option<&'a str>,
+    proxy_login: Option<&'a str>,
+    proxy_password: Option<&'a str>,
+}
+
+impl<'a> AmazonAWSWAFTask<'a> {
+    pub fn new(website_url: &'a str, data: AmazonAWSWAFTaskData<'a>) -> Self {
+        Self {
+            _type: "AmazonTask",
+            cookie_solution: true,
+            website_url,
+            task_data: data,
+            proxy_type: None,
+            proxy_address: None,
+            proxy_port: None,
+            proxy_login: None,
+            proxy_password: None,
+        }
+    }
+
+    set_key_option!(proxy_type, &'a str);
+    set_key_option!(proxy_address, &'a str);
+    set_key_option!(proxy_port, &'a str);
+    set_key_option!(proxy_login, &'a str);
+    set_key_option!(proxy_password, &'a str);
+}
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AmazonAWSWAFSolution {
+    pub cookies: AmazonAWSWAFSolutionCookies,
+    pub user_agent: BasiliskSolutionHeaders,
+}
+
+#[derive(Deserialize)]
+pub struct AmazonAWSWAFSolutionCookies {
+    #[serde(rename = "aws-waf-token")]
+    pub aws_waf_token: String,
+}
+
+impl_solver!(
+    AmazonAWSWAF,
+    AmazonAWSWAFTask<'_>,
+    AmazonAWSWAFSolution
+);
+
+//////////////////////////////////////////////
+
+pub struct Binance;
+impl_task!(
+    'a,
+    BinanceTask,
+    "BinanceTask",
+    {},
+    {
+        website_url: &'a str,
+        website_key: &'a str,
+        validate_id: &'a str,
+    },
+    {
+        user_agent: &'a str,
+        proxy_type: &'a str,
+        proxy_address: &'a str,
+        proxy_port: &'a str,
+        proxy_login: &'a str,
+        proxy_password: &'a str,
+    }
+);
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct BinanceSolution {
+    pub token: String,
+    pub user_agent: String,
+}
+
+impl_solver!(Binance, BinanceTask<'_>, BinanceSolution);
+
+//////////////////////////////////////////////
+
+pub struct Imperva;
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ImpervaTaskMetadata<'a> {
+    incapsula_script_url: &'a str,
+    incapsula_cookies: &'a str,
+    reese84_url_endpoint: Option<&'a str>,
+}
+
+impl<'a> ImpervaTaskMetadata<'a> {
+    pub fn new(script_url: &'a str, cookies: &'a str) -> Self {
+        Self {
+            incapsula_script_url: script_url,
+            incapsula_cookies: cookies,
+            reese84_url_endpoint: None,
+        }
+    }
+
+    set_key_option!(reese84_url_endpoint, &'a str);
+}
+
+impl_task!(
+    'a,
+    ImpervaTask,
+    "CustomTask",
+    {
+        class: "Imperva",
+    },
+    {
+        website_url: &'a str,
+        website_key: &'a str,
+        metadata: ImpervaTaskMetadata<'a>,
+        proxy_type: &'a str,
+        proxy_address: &'a str,
+        proxy_port: &'a str,
+        proxy_login: &'a str,
+        proxy_password: &'a str,
+    },
+    {
+        user_agent: &'a str,
+    }
+);
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ImpervaSolution {
+    pub domains: HashMap<String, ImpervaSolutionDomain>,
+    pub user_agent: String,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ImpervaSolutionDomain {
+    pub cookies: ImpervaSolutionCookie
+}
+
+#[derive(Deserialize)]
+pub struct ImpervaSolutionCookie {
+    pub ___utmvc: String,
+}
+
+impl_solver!(Imperva, ImpervaTask<'_>, ImpervaSolution);
 
 //////////////////////////////////////////////
