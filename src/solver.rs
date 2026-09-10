@@ -223,11 +223,9 @@ pub struct RecaptchaV2EnterpriseTaskPayload<'a> {
 }
 
 impl<'a> RecaptchaV2EnterpriseTaskPayload<'a> {
-     pub fn new(data: &'a str) -> Self {
-         Self {
-             s: data,
-         }
-     }
+    pub fn new(data: &'a str) -> Self {
+        Self { s: data }
+    }
 }
 
 impl_task!(
@@ -539,12 +537,7 @@ pub struct BasiliskSolutionHeaders {
     pub user_agent: String,
 }
 
-impl_solver!(
-    Basilisk,
-    BasiliskTask<'_>,
-    BasiliskSolution
-);
-
+impl_solver!(Basilisk, BasiliskTask<'_>, BasiliskSolution);
 
 //////////////////////////////////////////////
 
@@ -557,9 +550,7 @@ pub struct TenDITaskMetadata<'a> {
 
 impl<'a> TenDITaskMetadata<'a> {
     pub fn new() -> Self {
-        Self {
-            captcha_url: None,
-        }
+        Self { captcha_url: None }
     }
 
     set_key_option!(captcha_url, &'a str);
@@ -602,11 +593,7 @@ pub struct TenDISolutionHeaders {
     pub user_agent: String,
 }
 
-impl_solver!(
-    TenDI,
-    TenDITask<'_>,
-    TenDISolution
-);
+impl_solver!(TenDI, TenDITask<'_>, TenDISolution);
 
 //////////////////////////////////////////////
 
@@ -642,7 +629,13 @@ impl<'a> AmazonAWSWAFTaskData<'a> {
         }
     }
 
-    pub fn captcha_and_challenge(website_key: &'a str, challenge_script: &'a str, captcha_script: &'a str, context: &'a str, iv: &'a str) -> Self {
+    pub fn captcha_and_challenge(
+        website_key: &'a str,
+        challenge_script: &'a str,
+        captcha_script: &'a str,
+        context: &'a str,
+        iv: &'a str,
+    ) -> Self {
         Self::CaptchaAndChallenge {
             website_key,
             challenge_script,
@@ -711,11 +704,7 @@ pub struct AmazonAWSWAFSolutionCookies {
     pub aws_waf_token: String,
 }
 
-impl_solver!(
-    AmazonAWSWAF,
-    AmazonAWSWAFTask<'_>,
-    AmazonAWSWAFSolution
-);
+impl_solver!(AmazonAWSWAF, AmazonAWSWAFTask<'_>, AmazonAWSWAFSolution);
 
 //////////////////////////////////////////////
 
@@ -802,7 +791,7 @@ pub struct ImpervaSolution {
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ImpervaSolutionDomain {
-    pub cookies: ImpervaSolutionCookie
+    pub cookies: ImpervaSolutionCookie,
 }
 
 #[derive(Deserialize)]
@@ -1064,9 +1053,7 @@ pub struct FriendlyCaptchaTaskMetadata<'a> {
 
 impl<'a> FriendlyCaptchaTaskMetadata<'a> {
     pub fn new(api_get_lib: &'a str) -> Self {
-        Self {
-            api_get_lib,
-        }
+        Self { api_get_lib }
     }
 }
 
@@ -1103,6 +1090,10 @@ pub struct FriendlyCaptchaSolutionData {
     pub token: String,
 }
 
-impl_solver!(FriendlyCaptcha, FriendlyCaptchaTask<'_>, FriendlyCaptchaSolution);
+impl_solver!(
+    FriendlyCaptcha,
+    FriendlyCaptchaTask<'_>,
+    FriendlyCaptchaSolution
+);
 
 //////////////////////////////////////////////
