@@ -4,6 +4,60 @@ use serde_json::Value;
 use std::collections::HashMap;
 use std::time::Duration;
 
+/* IMPLEMENTED SOLVERS
+- Recaptcha
+    V2
+    V3
+    V2 Enterprise
+    V3 Enterprise
+- GeeTest
+- Cloudflare
+    Turnstile
+    Challenge
+    Waiting Room
+- Datadome
+- Basilisk
+- TenDI
+- Amazon AWS WAF
+    Captcha
+    Captcha and Challenge
+    Challenge
+- Binance
+- Imperva (Incapsula)
+- Prosopo
+- Yidun
+- MTCaptcha
+- Altcha
+- FunCaptcha
+- TSPD
+- FriendlyCaptcha
+*/
+
+/* TODO: TO BE IMPLEMENTED
+- Recaptcha
+    Click
+- Complex Image
+    Audio
+        Bills_audio
+    Coordinate
+        Shein
+    Grid
+        Bls
+    Rotation
+        Baidu
+        Betpunch_3x3_rotate
+        oocl_rotate_double_new
+        oocl_rotate_new
+    Text
+        Dli_ensemble
+        Mathsum
+        portugal_text_find_icon
+- ImageToText
+    All Variants
+- Hunt Captcha
+- Alibaba Captcha
+ */
+
 macro_rules! impl_solver {
     ($solver:ty, $input:ty, $output:ty) => {
         impl CapMonster<$solver> {
@@ -757,5 +811,298 @@ pub struct ImpervaSolutionCookie {
 }
 
 impl_solver!(Imperva, ImpervaTask<'_>, ImpervaSolution);
+
+//////////////////////////////////////////////
+
+pub struct Prosopo;
+impl_task!(
+    'a,
+    ProsopoTask,
+    "ProsopoTask",
+    {},
+    {
+        website_url: &'a str,
+        website_key: &'a str,
+    },
+    {
+        user_agent: &'a str,
+        proxy_type: &'a str,
+        proxy_address: &'a str,
+        proxy_port: &'a str,
+        proxy_login: &'a str,
+        proxy_password: &'a str,
+    }
+);
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ProsopoSolution {
+    pub token: String,
+}
+
+impl_solver!(Prosopo, ProsopoTask<'_>, ProsopoSolution);
+
+//////////////////////////////////////////////
+
+pub struct Yidun;
+impl_task!(
+    'a,
+    YidunTask,
+    "YidunTask",
+    {},
+    {
+        website_url: &'a str,
+        website_key: &'a str,
+    },
+    {
+        user_agent: &'a str,
+        yidun_get_lib: &'a str,
+        yidun_api_server_subdomain: &'a str,
+        challenge: &'a str,
+        hcg: &'a str,
+        hct: i64,
+        proxy_type: &'a str,
+        proxy_address: &'a str,
+        proxy_port: &'a str,
+        proxy_login: &'a str,
+        proxy_password: &'a str,
+    }
+);
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct YidunSolution {
+    pub token: String,
+}
+
+impl_solver!(Yidun, YidunTask<'_>, YidunSolution);
+
+//////////////////////////////////////////////
+
+pub struct MTCaptcha;
+impl_task!(
+    'a,
+    MTCaptchaTask,
+    "MTCaptchaTask",
+    {},
+    {
+        website_url: &'a str,
+        website_key: &'a str,
+    },
+    {
+        user_agent: &'a str,
+        page_action: &'a str,
+        is_invisible: bool,
+        proxy_type: &'a str,
+        proxy_address: &'a str,
+        proxy_port: &'a str,
+        proxy_login: &'a str,
+        proxy_password: &'a str,
+    }
+);
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct MTCaptchaSolution {
+    pub token: String,
+}
+
+impl_solver!(MTCaptcha, MTCaptchaTask<'_>, MTCaptchaSolution);
+
+//////////////////////////////////////////////
+
+pub struct Altcha;
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AltchaMetadata<'a> {
+    challenge: &'a str,
+    iterations: &'a str,
+    salt: &'a str,
+    signature: &'a str,
+}
+
+impl<'a> AltchaMetadata<'a> {
+    pub fn new(challenge: &'a str, iterations: &'a str, salt: &'a str, signature: &'a str) -> Self {
+        Self {
+            challenge,
+            iterations,
+            salt,
+            signature,
+        }
+    }
+}
+
+impl_task!(
+    'a,
+    AltchaTask,
+    "CustomTask",
+    {
+        class: "altcha"
+    },
+    {
+        website_url: &'a str,
+        website_key: &'a str,
+        metadata: AltchaMetadata<'a>,
+    },
+    {
+        user_agent: &'a str,
+        page_action: &'a str,
+        is_invisible: bool,
+        proxy_type: &'a str,
+        proxy_address: &'a str,
+        proxy_port: &'a str,
+        proxy_login: &'a str,
+        proxy_password: &'a str,
+    }
+);
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AltchaSolution {
+    pub data: AltchaSolutionData,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AltchaSolutionData {
+    pub token: String,
+    pub number: i64,
+}
+
+impl_solver!(Altcha, AltchaTask<'_>, AltchaSolution);
+
+//////////////////////////////////////////////
+
+pub struct FunCaptcha;
+impl_task!(
+    'a,
+    FunCaptchaTask,
+    "FunCaptchaTask",
+    {},
+    {
+        website_url: &'a str,
+        website_public_key: &'a str,
+        proxy_type: &'a str,
+        proxy_address: &'a str,
+        proxy_port: &'a str,
+        proxy_login: &'a str,
+        proxy_password: &'a str,
+    },
+    {
+        data: &'a str,
+        funcaptcha_api_j_s_subdomain: &'a str, // _j_s_ is due to camelCase serde renaming
+        user_agent: &'a str,
+        cookies: &'a str,
+    }
+);
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct FunCaptchaSolution {
+    pub token: String,
+    pub user_agent: String,
+}
+
+impl_solver!(FunCaptcha, FunCaptchaTask<'_>, FunCaptchaSolution);
+
+//////////////////////////////////////////////
+
+pub struct TSPD;
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TSPDTaskMetadata<'a> {
+    tspd_cookie: &'a str,
+    html_page_base64: &'a str,
+}
+
+impl<'a> TSPDTaskMetadata<'a> {
+    pub fn new(tspd_cookie: &'a str, html_page_base64: &'a str) -> Self {
+        Self {
+            tspd_cookie,
+            html_page_base64,
+        }
+    }
+}
+
+impl_task!(
+    'a,
+    TSPDTask,
+    "CustomTask",
+    {
+        class: "tpsd",
+    },
+    {
+        website_url: &'a str,
+        metadata: TSPDTaskMetadata<'a>,
+        proxy_type: &'a str,
+        proxy_address: &'a str,
+        proxy_port: &'a str,
+        proxy_login: &'a str,
+        proxy_password: &'a str,
+    },
+    {
+        user_agent: &'a str,
+    }
+);
+#[derive(Deserialize)]
+#[serde(rename_all = "PascalCase")]
+pub struct TSPDSolution {
+    pub domains: HashMap<String, TSPDSolutionDomain>,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "PascalCase")]
+pub struct TSPDSolutionDomain {
+    pub cookies: HashMap<String, String>,
+}
+
+impl_solver!(TSPD, TSPDTask<'_>, TSPDSolution);
+
+//////////////////////////////////////////////
+
+pub struct FriendlyCaptcha;
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct FriendlyCaptchaTaskMetadata<'a> {
+    api_get_lib: &'a str,
+}
+
+impl<'a> FriendlyCaptchaTaskMetadata<'a> {
+    pub fn new(api_get_lib: &'a str) -> Self {
+        Self {
+            api_get_lib,
+        }
+    }
+}
+
+impl_task!(
+    'a,
+    FriendlyCaptchaTask,
+    "CustomTask",
+    {
+        class: "friendly",
+    },
+    {
+        website_url: &'a str,
+        website_key: &'a str,
+        metadata: FriendlyCaptchaTaskMetadata<'a>,
+    },
+    {
+        user_agent: &'a str,
+        proxy_type: &'a str,
+        proxy_address: &'a str,
+        proxy_port: &'a str,
+        proxy_login: &'a str,
+        proxy_password: &'a str,
+    }
+);
+#[derive(Deserialize)]
+#[serde(rename_all = "PascalCase")]
+pub struct FriendlyCaptchaSolution {
+    pub data: FriendlyCaptchaSolutionData,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "PascalCase")]
+pub struct FriendlyCaptchaSolutionData {
+    pub token: String,
+}
+
+impl_solver!(FriendlyCaptcha, FriendlyCaptchaTask<'_>, FriendlyCaptchaSolution);
 
 //////////////////////////////////////////////
