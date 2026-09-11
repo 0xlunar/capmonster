@@ -84,3 +84,6 @@ All solver fields are documented as required on [Capmonster's Documentation page
     - _All Variants_
 - **Hunt Captcha**
 - **Alibaba Captcha**
+
+## Disclaimer
+**This library is not yet endorsed by Capmonster.cloud and is an unofficial implementation.**
