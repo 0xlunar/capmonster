@@ -1,6 +1,11 @@
 # Capmonster
 Capmonster.cloud captcha solvers implemented in Rust
 
+[[Crate](https://crates.io/crates/capmonster)] [[Docs](https://docs.rs/capmonster/latest/capmonster/)]
+
+## Installation
+`cargo add capmonster`
+
 ## Usage
 ```rust
 use capmonster::CapMonster;

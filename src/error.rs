@@ -1,6 +1,6 @@
 use serde::de::{Error, Visitor};
 use serde::{Deserialize, Deserializer};
-use std::fmt::Formatter;
+use std::fmt::{Display, Formatter};
 
 #[derive(Debug)]
 pub enum CapMonsterError {
@@ -37,6 +37,7 @@ pub enum ErrorCode {
     IpBlocked,
     ProxyConnectRefused,
     ProxyBanned,
+    ProxyMissing,
     ProxyNotAuthorised,
     ProxyReadTimeout,
     TaskNotSupported,
@@ -45,6 +46,61 @@ pub enum ErrorCode {
     ServiceNotAvailable,
     InvalidTask,
 }
+
+impl Display for CapMonsterError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            CapMonsterError::TaskError(error) => error.fmt(f),
+            CapMonsterError::Custom(custom) => f.write_str(&custom)
+        }
+    }
+}
+
+impl Display for TaskError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        // Using Debug output for error code to use name instead of the Display impl descriptions.
+        write!(f, "{} | {:?} - {}", self.error_id, self.error_code, self.error_description)
+    }
+}
+
+impl Display for ErrorCode {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ErrorCode::KeyDoesNotExist => f.write_str("Key does not exist"),
+            ErrorCode::ProxyCredentialsInvalidCharacter => f.write_str("Proxy credentials contain invalid character"),
+            ErrorCode::ZeroBalance => f.write_str("Zero balance"),
+            ErrorCode::TooBigCaptchaFileSize => f.write_str("Image exceeds maximum size (50KB)"),
+            ErrorCode::ZeroCaptchaFileSize => f.write_str("Image size less than 100 bytes"),
+            ErrorCode::CaptchaIdNotFound => f.write_str("Task does not exist or task expired."),
+            ErrorCode::CaptchaUnsolvable => f.write_str("Service failed to solve task"),
+            ErrorCode::CaptchaNotReady => f.write_str("Captcha not ready"),
+            ErrorCode::IpNotAllowed => f.write_str("Request is not allowed from your ip (configure in dashboard)"),
+            ErrorCode::IpBanned => f.write_str("Exceeded request limit with incorrect API Key"),
+            ErrorCode::NoSuchMethod => f.write_str("Incorrect task type specified"),
+            ErrorCode::TooMuchRequests => f.write_str("Exceeded request limit for getting a response on one task"),
+            ErrorCode::DomainNotAllowed => f.write_str("Solving captcha forbidden on domain"),
+            ErrorCode::TokenExpired => f.write_str("Additional token expired"),
+            ErrorCode::RecaptchaInvalidSiteKey => f.write_str("Invalid websiteKey provided"),
+            ErrorCode::RecaptchaInvalidDomain => f.write_str("Domain does not match the specified sitekey or url is in incorrect format"),
+            ErrorCode::RecaptchaTimeout => f.write_str("Recaptcha solving time expired"),
+            ErrorCode::IpBlocked => f.write_str("IP Blocked due to high number of failed requests"),
+            ErrorCode::ProxyConnectRefused => f.write_str("Failed to connect to proxy"),
+            ErrorCode::ProxyBanned => f.write_str("Proxy is banned on captcha service"),
+            ErrorCode::ProxyMissing => f.write_str("Proxy parameters are missing in required fields or incorrect proxy_type"),
+            ErrorCode::ProxyNotAuthorised => f.write_str("Incorrect proxy authorization data"),
+            ErrorCode::ProxyReadTimeout => f.write_str("Incorrect proxyAddress or proxyPort causing connection timeout"),
+            ErrorCode::TaskNotSupported => f.write_str("Specified task type is unsupported or invalid"),
+            ErrorCode::TaskAbsent => f.write_str("Task object missing"),
+            ErrorCode::WrongUserAgent => f.write_str("Invalid User Agent was provided"),
+            ErrorCode::ServiceNotAvailable => f.write_str("Service is temporarily unavailable"),
+            ErrorCode::InvalidTask => f.write_str("Task contains invalid data but is syntactically correct"),
+        }
+    }
+}
+
+impl std::error::Error for ErrorCode {}
+impl std::error::Error for TaskError {}
+impl std::error::Error for CapMonsterError {}
 
 impl<'de> Deserialize<'de> for ErrorCode {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
@@ -82,6 +138,7 @@ impl TryFrom<&str> for ErrorCode {
             "ERROR_IP_BLOCKED" => Ok(Self::IpBlocked),
             "ERROR_PROXY_CONNECT_REFUSED" => Ok(Self::ProxyConnectRefused),
             "ERROR_PROXY_BANNED" => Ok(Self::ProxyBanned),
+            "ERROR_PROXY_MISSING" => Ok(Self::ProxyMissing),
             "ERROR_PROXY_NOT_AUTHORISED" => Ok(Self::ProxyNotAuthorised),
             "ERROR_PROXY_READ_TIMEOUT" => Ok(Self::ProxyReadTimeout),
             "ERROR_TASK_NOT_SUPPORTED" => Ok(Self::TaskNotSupported),
