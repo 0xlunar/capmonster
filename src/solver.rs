@@ -1097,3 +1097,94 @@ impl_solver!(
 );
 
 //////////////////////////////////////////////
+
+pub struct RecaptchaClick;
+
+#[derive(Serialize)]
+#[serde(rename_all = "PascalCase")]
+pub struct RecaptchaClickMetadata<'a> {
+    grid: RecaptchaClickGridSize,
+    task_definition: Option<&'a str>,
+    task: Option<&'a str>,
+}
+
+impl<'a> RecaptchaClickMetadata<'a> {
+    pub fn new_with_task_definition(grid: RecaptchaClickGridSize, task_definition: &'a str) -> Self {
+        Self {
+            grid,
+            task_definition: Some(task_definition),
+            task: None,
+        }
+    }
+
+    pub fn new_with_task(grid: RecaptchaClickGridSize, task: &'a str) -> Self {
+        Self {
+            grid,
+            task_definition: None,
+            task: Some(task),
+        }
+    }
+
+}
+
+#[derive(Serialize)]
+pub enum RecaptchaClickGridSize {
+    #[serde(rename = "1x1")]
+    OneByOne,
+    #[serde(rename = "3x3")]
+    ThreeByThree,
+    #[serde(rename = "4x4")]
+    FourByFour,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RecaptchaClickTask<'a> {
+    #[serde(rename = "type")]
+    _type: &'static str,
+    class: &'static str,
+    metadata: RecaptchaClickMetadata<'a>,
+    image_urls: Option<&'a [&'a str]>,
+    image_base64: Option<&'a [&'a str]>,
+    user_agent: Option<&'a str>,
+    website_url: Option<&'a str>,
+}
+
+impl<'a> RecaptchaClickTask<'a> {
+    pub fn new_with_image_urls(metadata: RecaptchaClickMetadata<'a>, image_urls: &'a [&'a str]) -> Self {
+        Self {
+            _type: "ComplexImageTask",
+            class: "recaptcha",
+            metadata,
+            image_urls: Some(image_urls),
+            image_base64: None,
+            user_agent: None,
+            website_url: None,
+        }
+    }
+
+    pub fn new_with_image_base64(metadata: RecaptchaClickMetadata<'a>, image_base64: &'a [&'a str]) -> Self {
+        Self {
+            _type: "ComplexImageTask",
+            class: "recaptcha",
+            metadata,
+            image_urls: None,
+            image_base64: Some(image_base64),
+            user_agent: None,
+            website_url: None,
+        }
+    }
+
+    set_key_option!(user_agent, &'a str);
+    set_key_option!(website_url, &'a str);
+}
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RecaptchaClickSolution {
+    pub answer: Vec<bool>,
+}
+
+impl_solver!(RecaptchaClick, RecaptchaClickTask<'_>, RecaptchaClickSolution);
+
+//////////////////////////////////////////////
+
