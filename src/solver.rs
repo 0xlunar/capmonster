@@ -10,6 +10,7 @@ use std::time::Duration;
     V3
     V2 Enterprise
     V3 Enterprise
+    Click
 - GeeTest
 - Cloudflare
     Turnstile
@@ -31,11 +32,6 @@ use std::time::Duration;
 - FunCaptcha
 - TSPD
 - FriendlyCaptcha
-*/
-
-/* TODO: TO BE IMPLEMENTED
-- Recaptcha
-    Click
 - Complex Image
     Audio
         Bills_audio
@@ -55,6 +51,9 @@ use std::time::Duration;
 - ImageToText
     All Variants
 - Hunt Captcha
+*/
+
+/* TODO: TO BE IMPLEMENTED
 - Alibaba Captcha
  */
 
@@ -1188,3 +1187,387 @@ impl_solver!(RecaptchaClick, RecaptchaClickTask<'_>, RecaptchaClickSolution);
 
 //////////////////////////////////////////////
 
+pub struct ComplexImage;
+
+#[derive(Serialize)]
+#[serde(rename_all = "PascalCase")]
+pub struct ComplexImageTaskMetadata<'a> {
+    task: ComplexImageTaskName,
+    task_argument: Option<&'a str>,
+    payload_type: Option<&'a str>,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ComplexImageTaskName {
+    BillsAudio,
+    Shein,
+    #[serde(rename = "bls_3x3")]
+    Bls3x3,
+    Baidu,
+    #[serde(rename = "betpunch_3x3_rotate")]
+    Betpunch3x3Rotate,
+    OoclRotateDoubleNew,
+    OoclRotateNew,
+    #[serde(rename = "dli")]
+    DliEnsemble,
+    #[serde(rename = "MathSum")]
+    Mathsum,
+    PortugalTextFindIcon
+}
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ComplexImageTask<'a> {
+    #[serde(rename = "type")]
+    _type: &'a str,
+    class: &'a str,
+    images_base64: &'a [&'a str],
+    metadata: ComplexImageTaskMetadata<'a>
+}
+
+impl<'a> ComplexImageTask<'a> {
+    pub fn new_bills_audio(audio_base64: &'a [&'a str]) -> Self {
+        Self {
+            _type: "ComplexImageTask",
+            class: "recognition",
+            images_base64: audio_base64,
+            metadata: ComplexImageTaskMetadata {
+                task: ComplexImageTaskName::BillsAudio,
+                task_argument: None,
+                payload_type: Some("Audio"),
+            },
+        }
+    }
+    pub fn new_shein(images_base64: &'a [&'a str]) -> Self {
+        Self {
+            _type: "ComplexImageTask",
+            class: "recognition",
+            images_base64,
+            metadata: ComplexImageTaskMetadata {
+                task: ComplexImageTaskName::Shein,
+                task_argument: None,
+                payload_type: None,
+            },
+        }
+    }
+    pub fn new_bls(images_base64: &'a [&'a str], task_argument: &'a str) -> Self {
+        Self {
+            _type: "ComplexImageTask",
+            class: "recognition",
+            images_base64,
+            metadata: ComplexImageTaskMetadata {
+                task: ComplexImageTaskName::Bls3x3,
+                task_argument: Some(task_argument),
+                payload_type: None,
+            },
+        }
+    }
+    pub fn new_baidu(images_base64: &'a [&'a str]) -> Self {
+        Self {
+            _type: "ComplexImageTask",
+            class: "recognition",
+            images_base64,
+            metadata: ComplexImageTaskMetadata {
+                task: ComplexImageTaskName::Baidu,
+                task_argument: None,
+                payload_type: None,
+            },
+        }
+    }
+    pub fn new_betpunch_3x3_rotate(images_base64: &'a [&'a str]) -> Self {
+        Self {
+            _type: "ComplexImageTask",
+            class: "recognition",
+            images_base64,
+            metadata: ComplexImageTaskMetadata {
+                task: ComplexImageTaskName::Betpunch3x3Rotate,
+                task_argument: None,
+                payload_type: None,
+            },
+        }
+    }
+    pub fn new_oocl_rotate_double_new(images_base64: &'a [&'a str]) -> Self {
+        Self {
+            _type: "ComplexImageTask",
+            class: "recognition",
+            images_base64,
+            metadata: ComplexImageTaskMetadata {
+                task: ComplexImageTaskName::OoclRotateDoubleNew,
+                task_argument: None,
+                payload_type: None,
+            },
+        }
+    }
+    pub fn new_oocl_rotate_new(images_base64: &'a [&'a str]) -> Self {
+        Self {
+            _type: "ComplexImageTask",
+            class: "recognition",
+            images_base64,
+            metadata: ComplexImageTaskMetadata {
+                task: ComplexImageTaskName::OoclRotateNew,
+                task_argument: None,
+                payload_type: None,
+            },
+        }
+    }
+    pub fn new_dli_ensemble(images_base64: &'a [&'a str]) -> Self {
+        Self {
+            _type: "ComplexImageTask",
+            class: "recognition",
+            images_base64,
+            metadata: ComplexImageTaskMetadata {
+                task: ComplexImageTaskName::DliEnsemble,
+                task_argument: None,
+                payload_type: None,
+            },
+        }
+    }
+    pub fn new_mathsum(images_base64: &'a [&'a str]) -> Self {
+        Self {
+            _type: "ComplexImageTask",
+            class: "recognition",
+            images_base64,
+            metadata: ComplexImageTaskMetadata {
+                task: ComplexImageTaskName::Mathsum,
+                task_argument: None,
+                payload_type: None,
+            },
+        }
+    }
+    pub fn new_portugal_text_find_icon(images_base64: &'a [&'a str], task_argument: &'a str) -> Self {
+        Self {
+            _type: "ComplexImageTask",
+            class: "recognition",
+            images_base64,
+            metadata: ComplexImageTaskMetadata {
+                task: ComplexImageTaskName::PortugalTextFindIcon,
+                task_argument: Some(task_argument),
+                payload_type: None,
+            },
+        }
+    }
+}
+
+#[derive(Deserialize)]
+#[serde(untagged)]
+pub enum ComplexImageSolution {
+    Audio(ComplexImageSolutionAudio),
+    Coordinate(ComplexImageSolutionCoordinate),
+    Grid(ComplexImageSolutionGrid),
+    Rotation(ComplexImageSolutionRotation),
+    Text(ComplexImageSolutionText),
+}
+
+#[derive(Deserialize)]
+pub struct ComplexImageSolutionMetadata {
+    pub answer_type: String,
+}
+
+#[derive(Deserialize)]
+pub struct ComplexImageSolutionAudio {
+    pub answer: Vec<i64>,
+    pub metadata: ComplexImageSolutionMetadata
+}
+
+#[derive(Deserialize)]
+pub struct ComplexImageCoordinate {
+    #[serde(rename = "X")]
+    pub x: f64,
+    #[serde(rename = "Y")]
+    pub y: f64,
+}
+
+#[derive(Deserialize)]
+pub struct ComplexImageSolutionCoordinate {
+    pub answer: Vec<ComplexImageCoordinate>,
+    pub metadata: ComplexImageSolutionMetadata
+}
+
+#[derive(Deserialize)]
+pub struct ComplexImageSolutionGrid {
+    pub answer: Vec<bool>,
+    pub metadata: ComplexImageSolutionMetadata
+}
+
+#[derive(Deserialize)]
+pub struct ComplexImageSolutionRotation {
+    pub answer: Vec<f64>,
+    pub metadata: ComplexImageSolutionMetadata
+}
+
+#[derive(Deserialize)]
+pub struct ComplexImageSolutionText {
+    pub answer: String,
+    pub metadata: ComplexImageSolutionMetadata
+}
+
+impl_solver!(ComplexImage, ComplexImageTask<'_>, ComplexImageSolution);
+
+//////////////////////////////////////////////
+
+pub struct ImageToText;
+
+#[derive(Serialize)]
+#[serde(rename = "lowercase")]
+pub enum ImageToTextModule<'a> {
+    Amazon,
+    Apple,
+    BotDetect,
+    Facebook,
+    Gmx,
+    Google,
+    Hotmail,
+    MailRu,
+    OkEng,
+    OkRus,
+    PartiallyBlur,
+    RamblerRus,
+    RamblerRusNew,
+    SolveMedia,
+    Steam,
+    Vk,
+    Whatsapp,
+    #[serde(rename = "wikimedia_paddle_ensemble")]
+    WikimediaPaddleEnsemble,
+    Yandex,
+    YandexNew,
+    YandexWave,
+    YandexWaveLatin,
+    #[serde(rename = "captcha_math")]
+    CaptchaMath,
+    Sat,
+    #[serde(rename = "bls_text")]
+    BlsText,
+    Universal,
+    Other(&'a str)
+}
+
+#[derive(Serialize)]
+#[serde(transparent)]
+pub struct ImageToTextRecognisingThreshold(u8);
+
+impl ImageToTextRecognisingThreshold {
+    pub fn new(threshold: u8) -> Self {
+        Self(threshold.min(100))
+    }
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ImageToTextTask<'a> {
+    #[serde(rename = "task")]
+    _type: &'static str,
+    body: &'a str,
+    cap_monster_module: ImageToTextModule<'a>,
+    #[serde(rename = "recognizingThreshold")]
+    recognising_threshold: Option<ImageToTextRecognisingThreshold>,
+    case: Option<bool>,
+    numeric: Option<u8>,
+    math: Option<bool>,
+}
+
+impl<'a> ImageToTextTask<'a> {
+    pub fn new(module: ImageToTextModule<'a>, image_base64: &'a str) -> Self {
+        Self {
+            _type: "ImageToTextTask",
+            body: image_base64,
+            cap_monster_module: module,
+            recognising_threshold: None,
+            case: None,
+            numeric: None,
+            math: None,
+        }
+    }
+
+    pub fn set_numeric(mut self, numeric: bool) -> Self {
+        if numeric {
+            self.numeric = Some(1);
+        }
+        // field is optional so no point sending if it's not numeric only.
+        self
+    }
+
+    set_key_option!(recognising_threshold, ImageToTextRecognisingThreshold);
+    set_key_option!(case, bool);
+    set_key_option!(math, bool);
+}
+
+#[derive(Deserialize)]
+pub struct ImageToTextSolution {
+    pub text: String
+}
+
+impl_solver!(ImageToText, ImageToTextTask<'_>, ImageToTextSolution);
+
+//////////////////////////////////////////////
+
+pub struct HuntCaptcha;
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct HuntCaptchaMetadata<'a> {
+    api_get_lib: &'a str,
+    data: Option<&'a str>,
+    widget_url: Option<&'a str>,
+}
+
+impl<'a> HuntCaptchaMetadata<'a> {
+    pub fn x_hd_generation(api_get_lib: &'a str) -> Self {
+        Self {
+            api_get_lib,
+            data: None,
+            widget_url: None,
+        }
+    }
+
+    pub fn meta_token(api_get_lib: &'a str, data: &'a str) -> Self {
+        Self {
+            api_get_lib,
+            data: Some(data),
+            widget_url: None,
+        }
+    }
+
+    pub fn widget_url(api_get_lib: &'a str, widget_url: &'a str) -> Self {
+        Self {
+            api_get_lib,
+            data: None,
+            widget_url: Some(widget_url),
+        }
+    }
+}
+
+impl_task!(
+    'a,
+    HuntCaptchaTask,
+    "CustomTask",
+    {
+        class: "HUNT",
+    },
+    {
+        website_url: &'a str,
+        metadata: HuntCaptchaMetadata<'a>,
+        proxy_type: &'a str,
+        proxy_address: &'a str,
+        proxy_port: &'a str,
+        proxy_login: &'a str,
+        proxy_password: &'a str,
+    },
+    {
+        user_agent: &'a str,
+    }
+);
+
+#[derive(Deserialize)]
+pub struct HuntCaptchaSolution {
+    pub data: HuntCaptchaSolutionData
+}
+
+#[derive(Deserialize)]
+pub struct HuntCaptchaSolutionData {
+    pub token: String,
+}
+
+impl_solver!(HuntCaptcha, HuntCaptchaTask<'_>, HuntCaptchaSolution);
+
+//////////////////////////////////////////////

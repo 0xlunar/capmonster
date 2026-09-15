@@ -3,6 +3,9 @@ Capmonster.cloud captcha solvers implemented in Rust
 
 [[Crate](https://crates.io/crates/capmonster)] [[Docs](https://docs.rs/capmonster/latest/capmonster/)]
 
+## Disclaimer
+**This library is not endorsed by Capmonster.cloud and is an unofficial implementation.**
+
 ## Installation
 `cargo add capmonster`
 
@@ -39,6 +42,7 @@ All solver fields are documented as required on [Capmonster's Documentation page
   - _V3_
   - _V2 Enterprise_
   - _V3 Enterprise_
+  - _Click_
 - **GeeTest**
 - **Cloudflare**
   - _Turnstile_
@@ -60,10 +64,6 @@ All solver fields are documented as required on [Capmonster's Documentation page
 - **FunCaptcha**
 - **TSPD**
 - **FriendlyCaptcha**
-
-## To Be Implemented
-- **Recaptcha**
-  - _Click_
 - **Complex Image**
   - **Audio**
     - _Bills_audio_
@@ -81,9 +81,8 @@ All solver fields are documented as required on [Capmonster's Documentation page
     - _Mathsum_
     - _portugal_text_find_icon_
 - **ImageToText**
-    - _All Variants_
+  - _All Variants_
 - **Hunt Captcha**
-- **Alibaba Captcha**
 
-## Disclaimer
-**This library is not yet endorsed by Capmonster.cloud and is an unofficial implementation.**
+## To Be Implemented
+- **Alibaba Captcha**
