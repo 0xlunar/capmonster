@@ -15,7 +15,7 @@ use capmonster::CapMonster;
 use capmonster::solver::{RecaptchaV2, RecaptchaV2Task};
 
 pub async fn recaptcha_v2() {
-    let client = wreq::Client::new();
+    let client = reqwest::Client::new();
     let solver = CapMonster::new(client, "api_key", RecaptchaV2);
     
     let task_data = RecaptchaV2Task::new("www.example.com", "site_key");
