@@ -8,9 +8,12 @@ use serde::{Deserialize, Serialize};
 use std::marker::PhantomData;
 use std::sync::Arc;
 use std::time::Duration;
+
+#[cfg(feature = "reqwest")]
+use reqwest as wreq;
 use wreq::Client;
 
-const BASE_URL: &'static str = "https://api.capmonster.cloud";
+const BASE_URL: &str = "https://api.capmonster.cloud";
 const POLL_RATE: Duration = Duration::from_secs(2);
 const MAX_ATTEMPTS: usize = 20;
 
@@ -34,7 +37,7 @@ impl<T> CapMonster<T> {
             client,
             client_key: client_key.into(),
             callback_url: None,
-            _solver: PhantomData::default(),
+            _solver: PhantomData,
         }
     }
 
@@ -49,7 +52,7 @@ impl<T> CapMonster<T> {
         let data = serde_json::json!({
             "clientKey": &*self.client_key,
             "task": task,
-            "callbackUrl": self.callback_url.as_ref().map(|url| &**url)
+            "callbackUrl": self.callback_url.as_deref()
         });
 
         let response = self
@@ -83,16 +86,14 @@ impl<T> CapMonster<T> {
             Err(CapMonsterError::TaskError(TaskError {
                 error_id: body.error_id,
                 error_description: body.error_description.unwrap_or_else(|| "".to_string()),
-                error_code: body
-                    .error_code
-                    .unwrap_or_else(|| ErrorCode::ServiceNotAvailable),
+                error_code: body.error_code.unwrap_or(ErrorCode::ServiceNotAvailable),
             }))
         } else {
             Ok(Task {
                 id: body.task_id,
                 client: self.client.clone(),
                 client_key: self.client_key.clone(),
-                _type: PhantomData::default(),
+                _type: PhantomData,
             })
         }
     }
@@ -134,9 +135,7 @@ impl<T> Task<T> {
             Err(CapMonsterError::TaskError(TaskError {
                 error_id: body.error_id,
                 error_description: body.error_description.unwrap_or_else(|| "".to_string()),
-                error_code: body
-                    .error_code
-                    .unwrap_or_else(|| ErrorCode::ServiceNotAvailable),
+                error_code: body.error_code.unwrap_or(ErrorCode::ServiceNotAvailable),
             }))
         } else if body.status == "ready" {
             Ok(body.solution)
@@ -149,9 +148,9 @@ impl<T> Task<T> {
         poll_rate: Option<Duration>,
         max_attempts: Option<usize>,
     ) -> Result<Output, CapMonsterError> {
-        let mut poll = tokio::time::interval(poll_rate.unwrap_or_else(|| POLL_RATE));
+        let mut poll = tokio::time::interval(poll_rate.unwrap_or(POLL_RATE));
         let mut count = 0;
-        while count < max_attempts.unwrap_or_else(|| MAX_ATTEMPTS) {
+        while count < max_attempts.unwrap_or(MAX_ATTEMPTS) {
             count += 1;
             debug!("Solve attempt [{count}] ID: [{}]", self.id);
             poll.tick().await;
@@ -167,6 +166,9 @@ impl<T> Task<T> {
 mod example {
     use crate::CapMonster;
     use crate::solver::{RecaptchaV2, RecaptchaV2Task};
+
+    #[cfg(feature = "reqwest")]
+    use reqwest as wreq;
     use wreq::Client;
 
     pub async fn recaptcha_v2() {

@@ -1105,7 +1105,10 @@ pub struct RecaptchaClickMetadata<'a> {
 }
 
 impl<'a> RecaptchaClickMetadata<'a> {
-    pub fn new_with_task_definition(grid: RecaptchaClickGridSize, task_definition: &'a str) -> Self {
+    pub fn new_with_task_definition(
+        grid: RecaptchaClickGridSize,
+        task_definition: &'a str,
+    ) -> Self {
         Self {
             grid,
             task_definition: Some(task_definition),
@@ -1120,7 +1123,6 @@ impl<'a> RecaptchaClickMetadata<'a> {
             task: Some(task),
         }
     }
-
 }
 
 #[derive(Serialize)]
@@ -1147,7 +1149,10 @@ pub struct RecaptchaClickTask<'a> {
 }
 
 impl<'a> RecaptchaClickTask<'a> {
-    pub fn new_with_image_urls(metadata: RecaptchaClickMetadata<'a>, image_urls: &'a [&'a str]) -> Self {
+    pub fn new_with_image_urls(
+        metadata: RecaptchaClickMetadata<'a>,
+        image_urls: &'a [&'a str],
+    ) -> Self {
         Self {
             _type: "ComplexImageTask",
             class: "recaptcha",
@@ -1159,7 +1164,10 @@ impl<'a> RecaptchaClickTask<'a> {
         }
     }
 
-    pub fn new_with_image_base64(metadata: RecaptchaClickMetadata<'a>, image_base64: &'a [&'a str]) -> Self {
+    pub fn new_with_image_base64(
+        metadata: RecaptchaClickMetadata<'a>,
+        image_base64: &'a [&'a str],
+    ) -> Self {
         Self {
             _type: "ComplexImageTask",
             class: "recaptcha",
@@ -1180,7 +1188,11 @@ pub struct RecaptchaClickSolution {
     pub answer: Vec<bool>,
 }
 
-impl_solver!(RecaptchaClick, RecaptchaClickTask<'_>, RecaptchaClickSolution);
+impl_solver!(
+    RecaptchaClick,
+    RecaptchaClickTask<'_>,
+    RecaptchaClickSolution
+);
 
 //////////////////////////////////////////////
 
@@ -1210,7 +1222,7 @@ pub enum ComplexImageTaskName {
     DliEnsemble,
     #[serde(rename = "MathSum")]
     Mathsum,
-    PortugalTextFindIcon
+    PortugalTextFindIcon,
 }
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -1219,7 +1231,7 @@ pub struct ComplexImageTask<'a> {
     _type: &'a str,
     class: &'a str,
     images_base64: &'a [&'a str],
-    metadata: ComplexImageTaskMetadata<'a>
+    metadata: ComplexImageTaskMetadata<'a>,
 }
 
 impl<'a> ComplexImageTask<'a> {
@@ -1331,7 +1343,10 @@ impl<'a> ComplexImageTask<'a> {
             },
         }
     }
-    pub fn new_portugal_text_find_icon(images_base64: &'a [&'a str], task_argument: &'a str) -> Self {
+    pub fn new_portugal_text_find_icon(
+        images_base64: &'a [&'a str],
+        task_argument: &'a str,
+    ) -> Self {
         Self {
             _type: "ComplexImageTask",
             class: "recognition",
@@ -1363,7 +1378,7 @@ pub struct ComplexImageSolutionMetadata {
 #[derive(Deserialize)]
 pub struct ComplexImageSolutionAudio {
     pub answer: Vec<i64>,
-    pub metadata: ComplexImageSolutionMetadata
+    pub metadata: ComplexImageSolutionMetadata,
 }
 
 #[derive(Deserialize)]
@@ -1377,25 +1392,25 @@ pub struct ComplexImageCoordinate {
 #[derive(Deserialize)]
 pub struct ComplexImageSolutionCoordinate {
     pub answer: Vec<ComplexImageCoordinate>,
-    pub metadata: ComplexImageSolutionMetadata
+    pub metadata: ComplexImageSolutionMetadata,
 }
 
 #[derive(Deserialize)]
 pub struct ComplexImageSolutionGrid {
     pub answer: Vec<bool>,
-    pub metadata: ComplexImageSolutionMetadata
+    pub metadata: ComplexImageSolutionMetadata,
 }
 
 #[derive(Deserialize)]
 pub struct ComplexImageSolutionRotation {
     pub answer: Vec<f64>,
-    pub metadata: ComplexImageSolutionMetadata
+    pub metadata: ComplexImageSolutionMetadata,
 }
 
 #[derive(Deserialize)]
 pub struct ComplexImageSolutionText {
     pub answer: String,
-    pub metadata: ComplexImageSolutionMetadata
+    pub metadata: ComplexImageSolutionMetadata,
 }
 
 impl_solver!(ComplexImage, ComplexImageTask<'_>, ComplexImageSolution);
@@ -1436,7 +1451,7 @@ pub enum ImageToTextModule<'a> {
     #[serde(rename = "bls_text")]
     BlsText,
     Universal,
-    Other(&'a str)
+    Other(&'a str),
 }
 
 #[derive(Serialize)]
@@ -1492,7 +1507,7 @@ impl<'a> ImageToTextTask<'a> {
 
 #[derive(Deserialize)]
 pub struct ImageToTextSolution {
-    pub text: String
+    pub text: String,
 }
 
 impl_solver!(ImageToText, ImageToTextTask<'_>, ImageToTextSolution);
@@ -1558,7 +1573,7 @@ impl_task!(
 
 #[derive(Deserialize)]
 pub struct HuntCaptchaSolution {
-    pub data: HuntCaptchaSolutionData
+    pub data: HuntCaptchaSolutionData,
 }
 
 #[derive(Deserialize)]
@@ -1603,7 +1618,16 @@ impl<'a> AlibabaCaptchaMetadata<'a> {
             cookie_required: None,
         }
     }
-    pub fn extended_params(scene_id: &'a str, prefix: &'a str, user_id: &'a str, user_user_id: &'a str, verify_type: &'a str, region: &'a str, user_certify_id: &'a str, api_get_lib: &'a str) -> Self {
+    pub fn extended_params(
+        scene_id: &'a str,
+        prefix: &'a str,
+        user_id: &'a str,
+        user_user_id: &'a str,
+        verify_type: &'a str,
+        region: &'a str,
+        user_certify_id: &'a str,
+        api_get_lib: &'a str,
+    ) -> Self {
         Self {
             scene_id: Some(scene_id),
             prefix: Some(prefix),
@@ -1631,7 +1655,16 @@ impl<'a> AlibabaCaptchaMetadata<'a> {
             cookie_required: None,
         }
     }
-    pub fn cookie_required(scene_id: &'a str, prefix: &'a str, user_id: &'a str, user_user_id: &'a str, verify_type: &'a str, region: &'a str, user_certify_id: &'a str, api_get_lib: &'a str) -> Self {
+    pub fn cookie_required(
+        scene_id: &'a str,
+        prefix: &'a str,
+        user_id: &'a str,
+        user_user_id: &'a str,
+        verify_type: &'a str,
+        region: &'a str,
+        user_certify_id: &'a str,
+        api_get_lib: &'a str,
+    ) -> Self {
         Self {
             scene_id: Some(scene_id),
             prefix: Some(prefix),
@@ -1678,7 +1711,7 @@ pub enum AlibabaCaptchaSolution {
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AlibabaCaptchaSolutionToken {
-    pub data: AlibabaCaptchaSolutionTokenInner
+    pub data: AlibabaCaptchaSolutionTokenInner,
 }
 
 #[derive(Deserialize)]
@@ -1690,7 +1723,7 @@ pub struct AlibabaCaptchaSolutionTokenInner {
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AlibabaCaptchaSolutionCookie {
-    pub domains: HashMap<String, AlibabaCaptchaSolutionCookieDomain>
+    pub domains: HashMap<String, AlibabaCaptchaSolutionCookieDomain>,
 }
 
 #[derive(Deserialize)]
@@ -1699,4 +1732,8 @@ pub struct AlibabaCaptchaSolutionCookieDomain {
     pub cookies: HashMap<String, String>,
 }
 
-impl_solver!(AlibabaCaptcha, AlibabaCaptchaTask<'_>, AlibabaCaptchaSolution);
+impl_solver!(
+    AlibabaCaptcha,
+    AlibabaCaptchaTask<'_>,
+    AlibabaCaptchaSolution
+);
