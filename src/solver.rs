@@ -1479,8 +1479,9 @@ impl<'a> ImageToTextTask<'a> {
     pub fn set_numeric(mut self, numeric: bool) -> Self {
         if numeric {
             self.numeric = Some(1);
+        } else {
+            self.numeric = None;
         }
-        // field is optional so no point sending if it's not numeric only.
         self
     }
 
