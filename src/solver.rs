@@ -51,11 +51,8 @@ use std::time::Duration;
 - ImageToText
     All Variants
 - Hunt Captcha
-*/
-
-/* TODO: TO BE IMPLEMENTED
 - Alibaba Captcha
- */
+*/
 
 macro_rules! impl_solver {
     ($solver:ty, $input:ty, $output:ty) => {
@@ -1571,3 +1568,134 @@ pub struct HuntCaptchaSolutionData {
 impl_solver!(HuntCaptcha, HuntCaptchaTask<'_>, HuntCaptchaSolution);
 
 //////////////////////////////////////////////
+
+pub struct AlibabaCaptcha;
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AlibabaCaptchaMetadata<'a> {
+    scene_id: Option<&'a str>,
+    prefix: Option<&'a str>,
+    user_id: Option<&'a str>,
+    user_user_id: Option<&'a str>,
+    verify_type: Option<&'a str>,
+    region: Option<&'a str>,
+    #[serde(rename = "UserCertifyId")]
+    user_certify_id: Option<&'a str>,
+    api_get_lib: Option<&'a str>,
+    punish_url: Option<&'a str>,
+    cookie_required: Option<bool>,
+}
+
+impl<'a> AlibabaCaptchaMetadata<'a> {
+    pub fn standard(scene_id: &'a str, prefix: &'a str) -> Self {
+        Self {
+            scene_id: Some(scene_id),
+            prefix: Some(prefix),
+            user_id: None,
+            user_user_id: None,
+            verify_type: None,
+            region: None,
+            user_certify_id: None,
+            api_get_lib: None,
+            punish_url: None,
+            cookie_required: None,
+        }
+    }
+    pub fn extended_params(scene_id: &'a str, prefix: &'a str, user_id: &'a str, user_user_id: &'a str, verify_type: &'a str, region: &'a str, user_certify_id: &'a str, api_get_lib: &'a str) -> Self {
+        Self {
+            scene_id: Some(scene_id),
+            prefix: Some(prefix),
+            user_id: Some(user_id),
+            user_user_id: Some(user_user_id),
+            verify_type: Some(verify_type),
+            region: Some(region),
+            user_certify_id: Some(user_certify_id),
+            api_get_lib: Some(api_get_lib),
+            punish_url: None,
+            cookie_required: None,
+        }
+    }
+    pub fn punish_url(punish_url: &'a str) -> Self {
+        Self {
+            scene_id: None,
+            prefix: None,
+            user_id: None,
+            user_user_id: None,
+            verify_type: None,
+            region: None,
+            user_certify_id: None,
+            api_get_lib: None,
+            punish_url: Some(punish_url),
+            cookie_required: None,
+        }
+    }
+    pub fn cookie_required(scene_id: &'a str, prefix: &'a str, user_id: &'a str, user_user_id: &'a str, verify_type: &'a str, region: &'a str, user_certify_id: &'a str, api_get_lib: &'a str) -> Self {
+        Self {
+            scene_id: Some(scene_id),
+            prefix: Some(prefix),
+            user_id: Some(user_id),
+            user_user_id: Some(user_user_id),
+            verify_type: Some(verify_type),
+            region: Some(region),
+            user_certify_id: Some(user_certify_id),
+            api_get_lib: Some(api_get_lib),
+            punish_url: None,
+            cookie_required: Some(true),
+        }
+    }
+}
+
+impl_task!(
+    'a,
+    AlibabaCaptchaTask,
+    "CustomTask",
+    {
+        class: "alibaba",
+    },
+    {
+        website_url: &'a str,
+        metadata: HuntCaptchaMetadata<'a>,
+    },
+    {
+        user_agent: &'a str,
+        proxy_type: &'a str,
+        proxy_address: &'a str,
+        proxy_port: &'a str,
+        proxy_login: &'a str,
+        proxy_password: &'a str,
+    }
+);
+
+#[derive(Deserialize)]
+#[serde(untagged)]
+pub enum AlibabaCaptchaSolution {
+    Token(AlibabaCaptchaSolutionToken),
+    Cookie(AlibabaCaptchaSolutionCookie),
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AlibabaCaptchaSolutionToken {
+    pub data: AlibabaCaptchaSolutionTokenInner
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AlibabaCaptchaSolutionTokenInner {
+    pub tokens: String,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AlibabaCaptchaSolutionCookie {
+    pub domains: HashMap<String, AlibabaCaptchaSolutionCookieDomain>
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AlibabaCaptchaSolutionCookieDomain {
+    pub cookies: HashMap<String, String>,
+}
+
+impl_solver!(AlibabaCaptcha, AlibabaCaptchaTask<'_>, AlibabaCaptchaSolution);

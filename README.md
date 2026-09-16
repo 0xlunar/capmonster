@@ -37,52 +37,50 @@ pub async fn recaptcha_v2() {
 All solver fields are documented as required on [Capmonster's Documentation page](https://docs.capmonster.cloud/docs/getting-start/)
 
 ## Supported Captchas
-- **Recaptcha**
-  - _V2_
-  - _V3_
-  - _V2 Enterprise_
-  - _V3 Enterprise_
-  - _Click_
-- **GeeTest**
-- **Cloudflare**
-  - _Turnstile_
-  - _Challenge_
-  - _Waiting_ Room
-- **Datadome**
-- **Basilisk**
-- **TenDI**
-- **Amazon AWS WAF**
-  - _Captcha (Option 1)_
-  - _Captcha and Challenge (Option 2)_
-  - _Challenge (Option 3)_
-- **Binance**
-- **Imperva** (Incapsula)
-- **Prosopo**
-- **Yidun**
-- **MTCaptcha**
-- **Altcha**
-- **FunCaptcha**
-- **TSPD**
-- **FriendlyCaptcha**
-- **Complex Image**
-  - **Audio**
-    - _Bills_audio_
-  - **Coordinate**
-    - _Shein_
-  - **Grid**
-    - _Bls_
-  - **Rotation**
-    - _Baidu_
-    - _Betpunch_3x3_rotate_
-    - _oocl_rotate_double_new_
-    - _oocl_rotate_new_
-  - **Text**
-    - _Dli_ensemble_
-    - _Mathsum_
-    - _portugal_text_find_icon_
-- **ImageToText**
-  - _All Variants_
-- **Hunt Captcha**
-
-## To Be Implemented
-- **Alibaba Captcha**
+- [x] **Recaptcha**
+  - [x] _V2_
+  - [x] _V3_
+  - [x] _V2 Enterprise_
+  - [x] _V3 Enterprise_
+  - [x] _Click_
+- [x] **GeeTest**
+- [x] **Cloudflare**
+  - [x] _Turnstile_
+  - [x] _Challenge_
+  - [x] _Waiting_ Room
+- [x] **Datadome**
+- [x] **Basilisk**
+- [x] **TenDI**
+- [x] **Amazon AWS WAF**
+  - [x] _Captcha (Option 1)_
+  - [x] _Captcha and Challenge (Option 2)_
+  - [x] _Challenge (Option 3)_
+- [x] **Binance**
+- [x] **Imperva** (Incapsula)
+- [x] **Prosopo**
+- [x] **Yidun**
+- [x] **MTCaptcha**
+- [x] **Altcha**
+- [x] **FunCaptcha**
+- [x] **TSPD**
+- [x] **FriendlyCaptcha**
+- [x] **Complex Image**
+  - [x] **Audio**
+    - [x] _Bills_audio_
+  - [x] **Coordinate**
+    - [x] _Shein_
+  - [x] **Grid**
+    - [x] _Bls_
+  - [x] **Rotation**
+    - [x] _Baidu_
+    - [x] _Betpunch_3x3_rotate_
+    - [x] _oocl_rotate_double_new_
+    - [x] _oocl_rotate_new_
+  - [x] **Text**
+    - [x] _Dli_ensemble_
+    - [x] _Mathsum_
+    - [x] _portugal_text_find_icon_
+- [x] **ImageToText**
+  - [x] _All Variants_
+- [x] **Hunt Captcha**
+- [x] **Alibaba Captcha**
