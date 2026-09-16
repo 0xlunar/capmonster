@@ -9,9 +9,9 @@ use std::marker::PhantomData;
 use std::sync::Arc;
 use std::time::Duration;
 
-#[cfg(feature = "reqwest")]
-use reqwest as wreq;
-use wreq::Client;
+#[cfg(feature = "wreq")]
+use wreq as reqwest;
+use reqwest::Client;
 
 const BASE_URL: &str = "https://api.capmonster.cloud";
 const POLL_RATE: Duration = Duration::from_secs(2);
@@ -167,9 +167,9 @@ mod example {
     use crate::CapMonster;
     use crate::solver::{RecaptchaV2, RecaptchaV2Task};
 
-    #[cfg(feature = "reqwest")]
-    use reqwest as wreq;
-    use wreq::Client;
+    #[cfg(feature = "wreq")]
+    use wreq as reqwest;
+    use reqwest::Client;
 
     pub async fn recaptcha_v2() {
         let client = Client::new();
