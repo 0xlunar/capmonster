@@ -1,5 +1,5 @@
 # Capmonster
-Capmonster.cloud captcha solvers implemented in Rust
+Capmonster.cloud captcha solvers rust implementation
 
 [[Crate](https://crates.io/crates/capmonster)] [[Docs](https://docs.rs/capmonster/latest/capmonster/)]
 
@@ -7,7 +7,11 @@ Capmonster.cloud captcha solvers implemented in Rust
 **This library is not endorsed by Capmonster.cloud and is an unofficial implementation.**
 
 ## Installation
+[**Reqwest**](https://crates.io/crates/reqwest):
 `cargo add capmonster`
+
+[**Wreq**](https://crates.io/crates/wreq):
+`cargo add capmonster --features=wreq --no-default-features`
 
 ## Usage
 ```rust
