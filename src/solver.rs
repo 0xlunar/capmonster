@@ -370,11 +370,11 @@ impl_task!(
     CloudflareChallengeCookieTask,
     "TurnstileTask",
     {
-        cloudflare_task_type: "cf_clearance"
+        cloudflare_task_type: "cf_clearance",
+        website_key: "capmonster",
     },
     {
         website_url: &'a str,
-        website_key: &'a str,
         html_page_base64: &'a str,
         user_agent: &'a str,
         proxy_type: &'a str,
