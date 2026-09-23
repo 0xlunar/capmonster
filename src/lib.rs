@@ -2,7 +2,7 @@ pub mod error;
 pub mod solver;
 
 use crate::error::{CapMonsterError, ErrorCode, TaskError};
-use log::debug;
+use log::{debug, info};
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 use std::marker::PhantomData;
@@ -70,13 +70,7 @@ impl<T> CapMonster<T> {
             )));
         }
 
-        #[derive(Deserialize)]
-        struct CreateTaskResponse {
-            error_id: i16,
-            error_code: Option<ErrorCode>,
-            error_description: Option<String>,
-            task_id: u64,
-        }
+
 
         let body = response
             .json::<CreateTaskResponse>()
@@ -118,14 +112,7 @@ impl<T> Task<T> {
             .await
             .map_err(|err| CapMonsterError::Custom(err.to_string()))?;
 
-        #[derive(Deserialize)]
-        struct GetTaskResultOutput<O> {
-            error_code: Option<ErrorCode>,
-            error_description: Option<String>,
-            error_id: i16,
-            status: String,
-            solution: Option<O>,
-        }
+
 
         let body = response
             .json::<GetTaskResultOutput<Output>>()
@@ -161,6 +148,29 @@ impl<T> Task<T> {
 
         Err(CapMonsterError::Custom("Exceeded max attempts".to_string()))
     }
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct CreateTaskResponse {
+    // #[serde(rename = "errorId")]
+    error_id: i16,
+    // #[serde(rename = "errorCode")]
+    error_code: Option<ErrorCode>,
+    // #[serde(rename = "errorDescription")]
+    error_description: Option<String>,
+    // #[serde(rename = "taskId")]
+    task_id: u64,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct GetTaskResultOutput<O> {
+    error_code: Option<ErrorCode>,
+    error_description: Option<String>,
+    error_id: i16,
+    status: String,
+    solution: Option<O>,
 }
 
 mod example {
