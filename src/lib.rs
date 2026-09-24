@@ -11,6 +11,7 @@ use std::time::Duration;
 
 #[cfg(feature = "wreq")]
 use wreq as reqwest;
+
 use reqwest::Client;
 
 const BASE_URL: &str = "https://api.capmonster.cloud";
@@ -70,8 +71,6 @@ impl<T> CapMonster<T> {
             )));
         }
 
-
-
         let body = response
             .json::<CreateTaskResponse>()
             .await
@@ -111,8 +110,6 @@ impl<T> Task<T> {
             .send()
             .await
             .map_err(|err| CapMonsterError::Custom(err.to_string()))?;
-
-
 
         let body = response
             .json::<GetTaskResultOutput<Output>>()
@@ -179,6 +176,7 @@ mod example {
 
     #[cfg(feature = "wreq")]
     use wreq as reqwest;
+
     use reqwest::Client;
 
     pub async fn recaptcha_v2() {
